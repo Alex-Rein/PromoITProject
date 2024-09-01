@@ -1,0 +1,5 @@
+.idea/
+project/project/__pycache__/
+project/consultations/__pycache__/
+project/consultations/migrations/__pycache__/
+project/.env
