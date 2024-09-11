@@ -13,6 +13,8 @@ urlpatterns = [
 
     path('specialists/', ListView.as_view(), name='specialists_list'),
     path('specialists/<int:pk>', SpecialistScheduleView.as_view()),
+    # path('schedules/<int:pk>', )
+
 
     path('test/', TestView.as_view(), name='test')
 ]

@@ -12,25 +12,33 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class SlotSerializer(serializers.ModelSerializer):
+    status = serializers.CharField(source='get_status_display')
+
     class Meta:
         model = Slot
-        fields = '__all__'
+        fields = ('id', 'start_time', 'status', 'duration', 'context')
+
+    def create(self, validated_data):
+        return Slot.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        ...
 
 
-class ScheduleSerializer(serializers.ModelSerializer):
+class ScheduleSerializer(WritableNestedModelSerializer):
     slots = SlotSerializer(allow_null=True, many=True, required=False)
 
     class Meta:
         model = Schedule
-        fields = ('date', 'work_shift_start_time', 'work_shift_end_time', 'slots')
+        fields = ('id', 'date', 'work_shift_start_time', 'work_shift_end_time', 'slots')
 
 
-class SpecialistScheduleSerializer(WritableNestedModelSerializer):
-    schedules = ScheduleSerializer(allow_null=True, many=True, required=False)
-
-    class Meta:
-        model = Specialist
-        fields = ('schedules', )
+# class SpecialistScheduleSerializer(WritableNestedModelSerializer):
+#     schedules = ScheduleSerializer(allow_null=True, many=True, required=False)
+#
+#     class Meta:
+#         model = Specialist
+#         fields = ('schedules', )
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
