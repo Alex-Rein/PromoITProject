@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from consultations.views import ListView, SpecialistScheduleView, TestView
+from consultations.views import ListView, SpecialistScheduleView, TestView, SlotCreateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -13,7 +13,7 @@ urlpatterns = [
 
     path('specialists/', ListView.as_view(), name='specialists_list'),
     path('specialists/<int:pk>', SpecialistScheduleView.as_view()),
-    # path('schedules/<int:pk>', )
+    path('schedules/<int:pk>', SlotCreateView.as_view({'post': 'create'}), name='slot_create'),
 
 
     path('test/', TestView.as_view(), name='test')

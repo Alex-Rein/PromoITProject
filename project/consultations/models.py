@@ -29,8 +29,8 @@ class Slot(models.Model):
 
     status = models.CharField(choices=Statuses, max_length=2, default=Statuses.FREE)
     start_time = models.TimeField()
-    # end_time = models.TimeField(null=True, blank=True)  # TODO надо ли?
-    duration = models.IntegerField(default=60, blank=True)
+    end_time = models.TimeField(null=True, blank=True)  # TODO надо ли?
+    duration = models.IntegerField(default=60, blank=True, help_text='По умолчанию 60 минут')
     context = models.TextField(blank=True, null=True)
     reserved_for_user = models.OneToOneField(User, on_delete=models.DO_NOTHING, blank=True, null=True)
     # appointments = models.ForeignKey(Appointment, on_delete=models.CASCADE)
