@@ -5,7 +5,8 @@ from .models import Specialist, Schedule, Slot
 
 
 class SpecialistAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user__last_name', 'user__first_name', 'speciality', 'is_on_vacation', 'schedules')
+    # list_display = ('id', 'user__last_name', 'user__first_name', 'speciality', 'is_on_vacation', 'schedules')
+    list_display = ('id', 'user__last_name', 'user__first_name', 'speciality', 'is_on_vacation')
 
     def schedule_list(self, obj):
         print('**********************')
@@ -18,8 +19,14 @@ class SpecialistAdmin(admin.ModelAdmin):
 
 
 class ScheduleAdmin(admin.ModelAdmin):
-    list_display = ('date', 'work_shift_start_time', 'work_shift_end_time',)
+    list_display = ('id', 'date', 'work_shift_start_time', 'work_shift_end_time', 'specialist')
+
+
+class SlotAdmin(admin.ModelAdmin):
+    list_display = ('id', 'start_time', 'status', 'duration', 'reserved_for_user')
+    list_filter = ('id', 'status')
 
 
 admin.site.register(Specialist, SpecialistAdmin)
 admin.site.register(Schedule, ScheduleAdmin)
+admin.site.register(Slot, SlotAdmin)

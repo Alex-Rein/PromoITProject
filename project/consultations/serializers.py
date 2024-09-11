@@ -11,23 +11,26 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('first_name', 'last_name')
 
 
-class ScheduleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Schedule
-        fields = '__all__'
-
-
-class ScheduleListSerializer(WritableNestedModelSerializer):
-    schedule = ScheduleSerializer(many=True, required=False)
-
-    class Meta:
-        model = Schedule
-
-
 class SlotSerializer(serializers.ModelSerializer):
     class Meta:
         model = Slot
         fields = '__all__'
+
+
+class ScheduleSerializer(serializers.ModelSerializer):
+    slots = SlotSerializer(allow_null=True, many=True, required=False)
+
+    class Meta:
+        model = Schedule
+        fields = ('date', 'work_shift_start_time', 'work_shift_end_time', 'slots')
+
+
+class SpecialistScheduleSerializer(WritableNestedModelSerializer):
+    schedules = ScheduleSerializer(allow_null=True, many=True, required=False)
+
+    class Meta:
+        model = Specialist
+        fields = ('schedules', )
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
