@@ -13,6 +13,22 @@ class CustomModelPermission(DjangoModelPermissions):
     }
 
 
+class BlockGroupPermission(BasePermission):
+    def has_permission(self, request, view):
+        return bool(not request.user.groups.filter(name='Blocked'))
+
+
+# class BlocklistPermission(BasePermission):
+#     """
+#     Global permission check for blocked IPs.
+#     """
+#
+#     def has_permission(self, request, view):
+#         # ip_addr = request.META['REMOTE_ADDR']
+#         # blocked = Blocklist.objects.filter(ip_addr=ip_addr).exists()
+#         return not blocked
+
+
 # class CustomObjectPermission(DjangoObjectPermissions):
 #     perms_map = {
 #         'GET': ['%(app_label)s.view_%(model_name)s'],

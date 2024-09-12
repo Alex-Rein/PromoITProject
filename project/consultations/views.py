@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from django.shortcuts import render
-from rest_framework.permissions import IsAuthenticated, BasePermission
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView, status
 from rest_framework import viewsets
@@ -11,7 +11,7 @@ from .models import Specialist, Schedule, Slot, Appointment
 from .serializers import (SpecialistSerializer, ScheduleDisplaySerializer,
                           ScheduleCreateSerializer, SlotDisplaySerializer,
                           SlotCreateSerializer, AppointmentCreateSerializer)
-from .permissions import CustomModelPermission
+from .permissions import CustomModelPermission, BlockGroupPermission
 
 
 # Create your views here.
@@ -77,6 +77,7 @@ class SpecialistScheduleView(ListAPIView):
     """
     GET Просмотр специалистом своего расписания.
     """
+    # permission_classes = [BlockGroupPermission]  # TODO
     serializer_class = ScheduleDisplaySerializer
 
     def get_queryset(self):
@@ -125,7 +126,7 @@ class AppointmentCreateView(CreateAPIView):
     """
     # permission_classes = [CustomModelPermission]  # TODO вернуть в рабочку
     serializer_class = AppointmentCreateSerializer
-    queryset = Appointment.objects.all()
+    queryset = Appointment.objects.none()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
