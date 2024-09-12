@@ -23,7 +23,7 @@ class TestView(APIView):
 
 class SpecialistsListView(ListAPIView):
     """
-    GET Список специалистов
+    GET Список всех специалистов.
     """
     # permission_classes = [CustomModelPermission]  # TODO вернуть в рабочку
     queryset = Specialist.objects.all()
@@ -32,7 +32,7 @@ class SpecialistsListView(ListAPIView):
 
 class SpecialistDetailView(APIView):
     """
-    GET Детальное расписание специалиста для пользователей
+    GET Детальное расписание специалиста для пользователей.
     """
     # permission_classes = [CustomModelPermission]  # TODO вернуть в рабочку
 
@@ -50,7 +50,7 @@ class SpecialistDetailView(APIView):
 
 class SpecialistScheduleCreateView(CreateAPIView):
     """
-    POST Создание расписания специалистом
+    POST Создание расписания специалистом.
     """
     # permission_classes = [IsAuthenticated]  # TODO redo permissions
     serializer_class = ScheduleCreateSerializer
@@ -72,9 +72,21 @@ class SpecialistScheduleCreateView(CreateAPIView):
             })
 
 
+class SpecialistScheduleView(ListAPIView):
+    """
+    GET Просмотр специалистом своего расписания.
+    """
+    serializer_class = ScheduleDisplaySerializer
+
+    def get_queryset(self):
+        specialist = Specialist.objects.get(user=self.request.user)
+        queryset = Schedule.objects.filter(specialist=specialist)
+        return queryset
+
+
 class SlotCreateView(CreateAPIView):
     """
-    POST Создать слот для расписания по его pk
+    POST Создать слот для расписания по его pk.
     """
     # permission_classes = [CustomModelPermission]  # TODO вернуть в рабочку
     serializer_class = SlotCreateSerializer
@@ -104,7 +116,7 @@ class SlotDetailView(RetrieveAPIView):
 
 class AppointmentCreateView(CreateAPIView):
     """
-    POST Записаться на прием
+    POST Запись на прием.
     """
     # permission_classes = [CustomModelPermission]  # TODO вернуть в рабочку
     serializer_class = AppointmentCreateSerializer
