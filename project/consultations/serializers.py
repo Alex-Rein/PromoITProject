@@ -46,12 +46,31 @@ class SlotCreateSerializer(serializers.ModelSerializer):
             return slot
 
 
-class ScheduleDisplaySerializer(WritableNestedModelSerializer):
+class ScheduleDisplaySerializer(serializers.ModelSerializer):
     slots = SlotDisplaySerializer(allow_null=True, many=True, required=False)
 
     class Meta:
         model = Schedule
         fields = ('id', 'date', 'work_shift_start_time', 'work_shift_end_time', 'slots')
+
+
+class ScheduleCreateSerializer(serializers.ModelSerializer):
+    date = serializers.DateField()
+
+    class Meta:
+        model = Schedule
+        fields = ('date', 'work_shift_start_time', 'work_shift_end_time')
+
+    def save(self, **kwargs):
+        if self.is_valid():
+            specialist = Specialist.objects.get(user=kwargs['user'])
+            schedule = Schedule.objects.create(
+                **self.validated_data,
+                specialist=specialist,
+            )
+            schedule.save()
+
+            return schedule
 
 
 class AppointmentDisplaySerializer(serializers.ModelSerializer):
@@ -85,4 +104,4 @@ class SpecialistSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Specialist
-        fields = ('id', 'speciality', 'user')
+        fields = ('id', 'speciality', 'user', 'is_on_vacation')

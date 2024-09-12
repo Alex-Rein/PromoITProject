@@ -2,8 +2,9 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from consultations.views import (ListView, SpecialistDetailView, TestView,
-                                 SlotCreateView, SlotDetailView, AppointmentCreateView)
+from consultations.views import (SpecialistsListView, SpecialistDetailView, TestView,
+                                 SlotCreateView, SlotDetailView, AppointmentCreateView,
+                                 SpecialistScheduleCreateView)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -12,8 +13,9 @@ urlpatterns = [
     path('api/token', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
 
-    path('specialists/', ListView.as_view(), name='specialists_list'),
-    path('specialists/<int:pk>', SpecialistDetailView.as_view()),
+    path('specialists/', SpecialistsListView.as_view(), name='specialists_list'),
+    path('specialists/<int:pk>', SpecialistDetailView.as_view(), name='specialist_details'),
+    path('specialists/add_schedule', SpecialistScheduleCreateView.as_view(), name='schedule_create'),
     path('schedules/<int:pk>', SlotCreateView.as_view(), name='slot_create'),
     path('slots/<int:pk>', SlotDetailView.as_view(), name='slot_details'),
     path('slots/<int:pk>/signup', AppointmentCreateView.as_view(), name='appointment_create'),

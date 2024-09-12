@@ -8,8 +8,8 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView
 
 from .models import Specialist, Schedule, Slot, Appointment
 from .serializers import (SpecialistSerializer, ScheduleDisplaySerializer,
-                          SlotDisplaySerializer, SlotCreateSerializer,
-                          AppointmentCreateSerializer)
+                          ScheduleCreateSerializer, SlotDisplaySerializer,
+                          SlotCreateSerializer, AppointmentCreateSerializer)
 from .permissions import CustomModelPermission
 
 
@@ -21,7 +21,7 @@ class TestView(APIView):
         return Response({'key': 'hello!'})
 
 
-class ListView(ListAPIView):
+class SpecialistsListView(ListAPIView):
     """
     GET Список специалистов
     """
@@ -30,15 +30,9 @@ class ListView(ListAPIView):
     serializer_class = SpecialistSerializer
 
 
-# class SpecialistScheduleView(RetrieveAPIView):
-#     permission_classes = [CustomModelPermission]
-#     queryset = Specialist.objects.all()
-#     serializer_class = SpecialistScheduleSerializer
-
-
 class SpecialistDetailView(APIView):
     """
-    GET Детальное расписание специалиста
+    GET Детальное расписание специалиста для пользователей
     """
     # permission_classes = [CustomModelPermission]  # TODO вернуть в рабочку
 
@@ -52,6 +46,30 @@ class SpecialistDetailView(APIView):
         data = Schedule.objects.filter(specialist=specialist)
         serializer = ScheduleDisplaySerializer(data, many=True)
         return Response(serializer.data)
+
+
+class SpecialistScheduleCreateView(CreateAPIView):
+    """
+    POST Создание расписания специалистом
+    """
+    # permission_classes = [IsAuthenticated]  # TODO redo permissions
+    serializer_class = ScheduleCreateSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            schedule = serializer.save(user=request.user)
+            return Response({
+                'status': status.HTTP_200_OK,
+                'message': 'Расписание создано',
+                'id': schedule.id
+            })
+        else:
+            print(serializer.errors)
+            return Response({
+                'message': serializer.errors,
+            })
 
 
 class SlotCreateView(CreateAPIView):
@@ -72,7 +90,7 @@ class SlotCreateView(CreateAPIView):
                 'id': slot.id
             })
         else:
-            print(print(serializer.errors))
+            print(serializer.errors)
             return Response({
                 'message': serializer.errors,
             })
@@ -100,11 +118,6 @@ class AppointmentCreateView(CreateAPIView):
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        print('**//**//**//**//**')
-        print('**//**//**//**//**')
-        print(instance)
-        print('**//**//**//**//**')
-        print('**//**//**//**//**')
         if instance.status == Slot.Statuses.RESERVED:
             return Response({
                 'message': 'Запись не прошла. Слот занят'
@@ -118,7 +131,7 @@ class AppointmentCreateView(CreateAPIView):
                 'id': appointment.id
             })
         else:
-            print(print(serializer.errors))
+            print(serializer.errors)
             return Response({
                 'message': serializer.errors,
             })

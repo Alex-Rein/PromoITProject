@@ -32,7 +32,7 @@ class Slot(models.Model):
     end_time = models.TimeField(null=True, blank=True)  # TODO надо ли?
     duration = models.IntegerField(default=60, blank=True, help_text='По умолчанию 60 минут')
     context = models.TextField(blank=True, null=True)
-    reserved_for_user = models.OneToOneField(User, on_delete=models.DO_NOTHING, blank=True, null=True)
+    reserved_for_user = models.ForeignKey(User, on_delete=models.DO_NOTHING, blank=True, null=True)
     # appointments = models.ForeignKey(Appointment, on_delete=models.CASCADE)
     schedule = models.ForeignKey('Schedule', on_delete=models.CASCADE, related_name='slots')
 
