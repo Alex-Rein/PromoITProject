@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from django.shortcuts import render
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.response import Response
@@ -79,7 +80,11 @@ class SpecialistScheduleView(ListAPIView):
     serializer_class = ScheduleDisplaySerializer
 
     def get_queryset(self):
-        specialist = Specialist.objects.get(user=self.request.user)
+        try:
+            specialist = Specialist.objects.get(user=self.request.user)
+        except:
+            return Specialist.objects.none()
+
         queryset = Schedule.objects.filter(specialist=specialist)
         return queryset
 
