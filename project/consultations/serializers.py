@@ -13,6 +13,25 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('first_name', 'last_name')
 
 
+class AdminUserSerializer(serializers.ModelSerializer):
+    groups = serializers.SlugRelatedField(slug_field='name', read_only=True, many=True)
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'is_staff', 'groups')
+
+
+class AdminUserActionSerializer(serializers.Serializer):
+    actions = {
+        ('block', 'block'),
+        ('unblock', 'unblock')
+    }
+    action = serializers.ChoiceField(actions, required=True)
+
+    class Meta:
+        fields = ('action',)
+
+
 class SlotDisplaySerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='get_status_display', read_only=True)
 

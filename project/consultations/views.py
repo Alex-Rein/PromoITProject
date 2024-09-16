@@ -1,17 +1,19 @@
 from datetime import datetime
 
+from django.contrib.auth.models import Group, User
 from django.shortcuts import render
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView, status
 from rest_framework import viewsets
-from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, GenericAPIView
 
 from .models import Specialist, Schedule, Slot, Appointment
 from .serializers import (SpecialistSerializer, ScheduleDisplaySerializer,
                           ScheduleCreateSerializer, SlotDisplaySerializer,
-                          SlotCreateSerializer, AppointmentCreateSerializer)
-from .permissions import CustomModelPermission, BlockGroupPermission
+                          SlotCreateSerializer, AppointmentCreateSerializer,
+                          AdminUserSerializer, AdminUserActionSerializer)
+from .permissions import CustomModelPermission, IsNotBlocked
 
 
 # Create your views here.
@@ -152,4 +154,43 @@ class AppointmentCreateView(CreateAPIView):
             print(serializer.errors)
             return Response({
                 'message': serializer.errors,
+            })
+
+
+class AdminUserListView(ListAPIView):
+    permission_classes = [IsAdminUser]
+    queryset = User.objects.all()
+    serializer_class = AdminUserSerializer
+
+
+class AdminUserActionView(GenericAPIView):
+    permission_classes = [IsAdminUser]
+    serializer_class = AdminUserActionSerializer
+
+    def post(self, request, pk):
+        try:
+            user = User.objects.get(pk=pk)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        blocked_group = Group.objects.get(name='Blocked')
+        if not request.user.groups.filter(name='Blocked').exists():
+            if request.data['action'] == 'block':
+                blocked_group.user_set.add(user)
+                return Response({
+                    'status': status.HTTP_200_OK,
+                    'message': f'Пользователь {user.username} заблокирован'
+                })
+            elif request.data['action'] == 'unblock':
+                blocked_group.user_set.remove(user)
+                return Response({
+                    'status': status.HTTP_200_OK,
+                    'message': f'Пользователь {user.username} разблокирован'
+                })
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            pass
+        else:
+            return Response({
+                'status': status.HTTP_400_BAD_REQUEST,
+                'message': serializer.errors
             })

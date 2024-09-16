@@ -13,9 +13,9 @@ class CustomModelPermission(DjangoModelPermissions):
     }
 
 
-class BlockGroupPermission(BasePermission):
+class IsNotBlocked(BasePermission):
     def has_permission(self, request, view):
-        return bool(not request.user.groups.filter(name='Blocked'))
+        return bool(request.user and not request.user.groups.filter(name='Blocked'))
 
 
 # class BlocklistPermission(BasePermission):
