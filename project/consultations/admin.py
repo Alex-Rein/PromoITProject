@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Specialist, Schedule, Slot
+from .models import Specialist, Schedule, Slot, Appointment
 
 # Register your models here.
 
@@ -27,6 +27,11 @@ class SlotAdmin(admin.ModelAdmin):
     list_filter = ('id', 'status')
 
 
+class AppointmentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'slot')
+
+
 admin.site.register(Specialist, SpecialistAdmin)
 admin.site.register(Schedule, ScheduleAdmin)
 admin.site.register(Slot, SlotAdmin)
+admin.site.register(Appointment, AppointmentAdmin)
