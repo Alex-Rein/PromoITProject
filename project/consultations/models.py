@@ -36,6 +36,9 @@ class Slot(models.Model):
     # appointments = models.ForeignKey(Appointment, on_delete=models.CASCADE)
     schedule = models.ForeignKey('Schedule', on_delete=models.CASCADE, related_name='slots')
 
+    def __str__(self):
+        return f'{self.pk}'
+
 
 class Schedule(models.Model):
     class Meta:

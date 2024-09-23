@@ -6,12 +6,13 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView, status
 from rest_framework import viewsets
-from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, GenericAPIView
+from rest_framework.generics import (ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView,
+                                     RetrieveUpdateAPIView, GenericAPIView)
 
 from .models import Specialist, Schedule, Slot, Appointment
 from .serializers import (SpecialistSerializer, ScheduleDisplaySerializer,
-                          ScheduleCreateSerializer, SlotDisplaySerializer,
-                          SlotCreateSerializer, AppointmentCreateSerializer,
+                          ScheduleCreateSerializer, SlotDisplaySerializer, SlotCreateSerializer,
+                          AppointmentCreateSerializer, AppointmentCancelSerializer,
                           AdminUserSerializer, AdminUserActionSerializer)
 from .permissions import CustomModelPermission, IsNotBlocked
 
@@ -57,6 +58,7 @@ class SpecialistScheduleCreateView(CreateAPIView):
     """
     # permission_classes = [IsAuthenticated]  # TODO redo permissions
     serializer_class = ScheduleCreateSerializer
+    http_method_names = ['post', 'patch']
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -116,10 +118,33 @@ class SlotCreateView(CreateAPIView):
             })
 
 
-class SlotDetailView(RetrieveAPIView):
-    # permission_classes = [CustomModelPermission]  # TODO вернуть в рабочку
-    queryset = Slot.objects.all()
-    serializer_class = SlotDisplaySerializer
+# class SlotDetailView(RetrieveUpdateAPIView):  # TODO Промежуточное view?
+#     """
+#     GET Просмотр деталей слота. UPDATE Изменение данных слота.
+#     """
+#     # permission_classes = [CustomModelPermission]  # TODO вернуть в рабочку
+#     queryset = Slot.objects.all()
+#     serializer_class = SlotDisplaySerializer
+#
+#     def partial_update(self, request, *args, **kwargs):
+#         instance = self.get_object()
+#         serializer = self.get_serializer(instance, data=request.data, partial=True)
+#         if serializer.is_valid():
+#             print('*************')
+#             print('*************')
+#             print(serializer.data['status'])
+#             print('*************')
+#             print('*************')
+#             serializer.save()
+#             return Response({
+#                 'status': status.HTTP_200_OK,
+#                 'message': f'Изменения применены успешно'
+#             })
+#         else:
+#             return Response({
+#                 'status': status.HTTP_400_BAD_REQUEST,
+#                 'message': serializer.errors
+#             })
 
 
 class AppointmentCreateView(CreateAPIView):
@@ -157,13 +182,27 @@ class AppointmentCreateView(CreateAPIView):
             })
 
 
+class AppointmentCancelView(UpdateAPIView):
+    """
+    UPDATE Отменить запись на прием.
+    """
+    queryset = Appointment.objects.all()
+    serializer_class = AppointmentCancelSerializer
+
+
 class AdminUserListView(ListAPIView):
+    """
+    GET Список всех пользователей для администратора.
+    """
     permission_classes = [IsAdminUser]
     queryset = User.objects.all()
     serializer_class = AdminUserSerializer
 
 
 class AdminUserActionView(GenericAPIView):
+    """
+    POST Управление блокировкой пользователя.
+    """
     permission_classes = [IsAdminUser]
     serializer_class = AdminUserActionSerializer
 

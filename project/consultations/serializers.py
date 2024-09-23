@@ -65,6 +65,27 @@ class SlotCreateSerializer(serializers.ModelSerializer):
             return slot
 
 
+class AppointmentCancelSerializer(serializers.ModelSerializer):
+    slot_id = serializers.CharField(source='slot.pk', read_only=True)
+    status = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Appointment
+        fields = ('cancel_cause_choice', 'cancel_cause', 'slot_id', 'status')
+
+    def update(self, instance, validated_data):
+        slot = self.instance.slot
+        slot.reserved_for_user = None
+        slot.status = Slot.Statuses.FREE
+        slot.save()
+
+        appointment = self.instance
+        appointment.cancel_cause = validated_data.get('cancel_cause')
+        appointment.cancel_cause_choice = validated_data.get('cancel_cause_choice')
+        appointment.save()
+        return appointment
+
+
 class ScheduleDisplaySerializer(serializers.ModelSerializer):
     slots = SlotDisplaySerializer(allow_null=True, many=True, required=False)
 
