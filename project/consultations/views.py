@@ -15,13 +15,6 @@ from .permissions import IsNotBlocked, IsSpecialist
 
 
 # Create your views here.
-class TestView(APIView):    # TODO REMOVE!!!
-    permission_classes = [IsAdminUser]
-
-    def get(self, request):
-        return Response({'key': 'hello!'})
-
-
 class SpecialistRegisterView(CreateAPIView):
     """
     POST Регистрация пользователя как специалиста.

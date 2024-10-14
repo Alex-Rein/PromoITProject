@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from consultations.views import (SpecialistsListView, SpecialistDetailView, TestView,
                                  AdminUserListView, AdminUserActionView,
@@ -10,6 +11,10 @@ from consultations.views import (SpecialistsListView, SpecialistDetailView, Test
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Swagger UI
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 
     # Authentication endpoints
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
@@ -31,10 +36,6 @@ urlpatterns = [
     path('specialist/my_schedule', SpecialistScheduleView.as_view(), name='specialist_schedule'),
     path('specialist/add_schedule', SpecialistScheduleCreateView.as_view(), name='schedule_create'),
     path('schedules/<int:pk>', SlotCreateView.as_view(), name='slot_create'),
-
-
-    path('test/', TestView.as_view(), name='test'),
-    # path('slot_test/<int:pk>', SlotUpdateView.as_view(), name='slot_update'),
 ]
 
 
