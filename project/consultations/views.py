@@ -10,26 +10,50 @@ from rest_framework.generics import (ListAPIView, RetrieveAPIView, CreateAPIView
                                      RetrieveUpdateAPIView, GenericAPIView)
 
 from .models import Specialist, Schedule, Slot, Appointment
-from .serializers import (SpecialistSerializer, ScheduleDisplaySerializer,
+from .serializers import (SpecialistSerializer, ScheduleDisplaySerializer, SpecialistRegisterSerializer,
                           ScheduleCreateSerializer, SlotDisplaySerializer, SlotCreateSerializer,
                           AppointmentCreateSerializer, AppointmentCancelSerializer,
                           AdminUserSerializer, AdminUserActionSerializer)
-from .permissions import CustomModelPermission, IsNotBlocked
+from .permissions import CustomModelPermission, IsNotBlocked, IsSpecialist
 
 
 # Create your views here.
-class TestView(APIView):
-    permission_classes = [IsAuthenticated]
+class TestView(APIView):    # TODO REMOVE!!!
+    permission_classes = [IsAdminUser]
 
     def get(self, request):
         return Response({'key': 'hello!'})
+
+
+class SpecialistRegisterView(CreateAPIView):
+    """
+    POST Регистрация пользователя как специалиста.
+    """
+    queryset = Specialist.objects.all()
+    serializer_class = SpecialistRegisterSerializer
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        specialist = Specialist.objects.filter(user=user)
+        if specialist.exists():
+            return Response({'message': f'Вы уже зарегестрированы по специальности {specialist.first().speciality}.'})
+
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=user)
+            spec_group = Group.objects.get(name='Specialist')
+            spec_group.user_set.add(user)
+            user_group = Group.objects.get(name='User')
+            user_group.user_set.remove(user)
+
+            return Response({'message': f'Вы успешно зарегестрированы'
+                                        f' по специальности {serializer.data['speciality']}.'})
 
 
 class SpecialistsListView(ListAPIView):
     """
     GET Список всех специалистов.
     """
-    # permission_classes = [CustomModelPermission]  # TODO вернуть в рабочку
     queryset = Specialist.objects.all()
     serializer_class = SpecialistSerializer
 
@@ -38,7 +62,6 @@ class SpecialistDetailView(APIView):
     """
     GET Детальное расписание специалиста для пользователей.
     """
-    # permission_classes = [CustomModelPermission]  # TODO вернуть в рабочку
 
     def get(self, request, pk):
         try:
@@ -56,7 +79,7 @@ class SpecialistScheduleCreateView(CreateAPIView):
     """
     POST Создание расписания специалистом.
     """
-    # permission_classes = [IsAuthenticated]  # TODO redo permissions
+    permission_classes = [IsSpecialist, IsNotBlocked]
     serializer_class = ScheduleCreateSerializer
     http_method_names = ['post', 'patch']
 
@@ -81,7 +104,7 @@ class SpecialistScheduleView(ListAPIView):
     """
     GET Просмотр специалистом своего расписания.
     """
-    # permission_classes = [BlockGroupPermission]  # TODO
+    permission_classes = [IsSpecialist, IsNotBlocked]
     serializer_class = ScheduleDisplaySerializer
 
     def get_queryset(self):
@@ -98,7 +121,7 @@ class SlotCreateView(CreateAPIView):
     """
     POST Создать слот для расписания по его pk.
     """
-    # permission_classes = [CustomModelPermission]  # TODO вернуть в рабочку
+    permission_classes = [IsSpecialist, IsNotBlocked]
     serializer_class = SlotCreateSerializer
 
     def create(self, request, *args, **kwargs):
@@ -118,40 +141,10 @@ class SlotCreateView(CreateAPIView):
             })
 
 
-# class SlotDetailView(RetrieveUpdateAPIView):  # TODO Промежуточное view?
-#     """
-#     GET Просмотр деталей слота. UPDATE Изменение данных слота.
-#     """
-#     # permission_classes = [CustomModelPermission]  # TODO вернуть в рабочку
-#     queryset = Slot.objects.all()
-#     serializer_class = SlotDisplaySerializer
-#
-#     def partial_update(self, request, *args, **kwargs):
-#         instance = self.get_object()
-#         serializer = self.get_serializer(instance, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             print('*************')
-#             print('*************')
-#             print(serializer.data['status'])
-#             print('*************')
-#             print('*************')
-#             serializer.save()
-#             return Response({
-#                 'status': status.HTTP_200_OK,
-#                 'message': f'Изменения применены успешно'
-#             })
-#         else:
-#             return Response({
-#                 'status': status.HTTP_400_BAD_REQUEST,
-#                 'message': serializer.errors
-#             })
-
-
 class AppointmentCreateView(CreateAPIView):
     """
     POST Запись на прием.
     """
-    # permission_classes = [CustomModelPermission]  # TODO вернуть в рабочку
     serializer_class = AppointmentCreateSerializer
     queryset = Appointment.objects.none()
 
@@ -188,6 +181,9 @@ class AppointmentCancelView(UpdateAPIView):
     """
     queryset = Appointment.objects.all()
     serializer_class = AppointmentCancelSerializer
+
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
 
 
 class AdminUserListView(ListAPIView):

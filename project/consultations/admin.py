@@ -6,7 +6,7 @@ from .models import Specialist, Schedule, Slot, Appointment
 
 class SpecialistAdmin(admin.ModelAdmin):
     # list_display = ('id', 'user__last_name', 'user__first_name', 'speciality', 'is_on_vacation', 'schedules')
-    list_display = ('id', 'user__last_name', 'user__first_name', 'speciality', 'is_on_vacation')
+    list_display = ('id', 'user__username', 'user__last_name', 'user__first_name', 'speciality', 'is_on_vacation')
 
     def schedule_list(self, obj):
         print('**********************')

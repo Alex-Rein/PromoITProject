@@ -18,6 +18,10 @@ class IsNotBlocked(BasePermission):
         return bool(request.user and not request.user.groups.filter(name='Blocked'))
 
 
+class IsSpecialist(BasePermission):
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.groups.filter(name='Specialist'))
+
 # class BlocklistPermission(BasePermission):
 #     """
 #     Global permission check for blocked IPs.

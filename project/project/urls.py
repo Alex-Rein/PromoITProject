@@ -6,7 +6,7 @@ from consultations.views import (SpecialistsListView, SpecialistDetailView, Test
                                  AdminUserListView, AdminUserActionView,
                                  SlotCreateView,
                                  AppointmentCreateView, AppointmentCancelView,
-                                 SpecialistScheduleCreateView, SpecialistScheduleView,)
+                                 SpecialistScheduleCreateView, SpecialistScheduleView, SpecialistRegisterView)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -23,11 +23,11 @@ urlpatterns = [
     # User endpoints
     path('specialists/', SpecialistsListView.as_view(), name='specialists_list'),
     path('specialists/<int:pk>', SpecialistDetailView.as_view(), name='specialist_details'),
-    # path('slots/<int:pk>', SlotDetailView.as_view(), name='slot_details'),
     path('appointment/<int:pk>', AppointmentCancelView.as_view(), name='appointment_cancel'),
-    path('slots/<int:pk>/signup', AppointmentCreateView.as_view(), name='appointment_create'),
+    path('slots/<int:pk>/signup', AppointmentCreateView.as_view(), name='appointment_signup'),
 
     # Specialist endpoints
+    path('specialist/register', SpecialistRegisterView.as_view(), name='specialist_register'),
     path('specialist/my_schedule', SpecialistScheduleView.as_view(), name='specialist_schedule'),
     path('specialist/add_schedule', SpecialistScheduleCreateView.as_view(), name='schedule_create'),
     path('schedules/<int:pk>', SlotCreateView.as_view(), name='slot_create'),

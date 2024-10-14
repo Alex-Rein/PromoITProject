@@ -74,16 +74,33 @@ class AppointmentCancelSerializer(serializers.ModelSerializer):
         fields = ('cancel_cause_choice', 'cancel_cause', 'slot_id', 'status')
 
     def update(self, instance, validated_data):
-        slot = self.instance.slot
+        slot = instance.slot
         slot.reserved_for_user = None
         slot.status = Slot.Statuses.FREE
         slot.save()
 
-        appointment = self.instance
+        appointment = instance
         appointment.cancel_cause = validated_data.get('cancel_cause')
         appointment.cancel_cause_choice = validated_data.get('cancel_cause_choice')
         appointment.save()
         return appointment
+
+    def validate(self, data):
+        """
+        Проверка что у пользователя есть доступ для отмены и что указана причина отмены записи.
+        """
+        if self.instance:
+            reserved_for_user = self.instance.slot.reserved_for_user
+            user = self.context['request'].user
+            if user == reserved_for_user:
+                cancel_cause_choice = data.get('cancel_cause_choice')
+                cancel_cause = data.get('cancel_cause')
+                if not cancel_cause_choice and not cancel_cause:
+                    raise serializers.ValidationError("Пожалуйста выберите причину отмены записи"
+                                                      " на консультацию или укажите свою.")
+            else:
+                raise serializers.ValidationError("Запись уже отменена или у вас не хватает для этого прав.")
+        return data
 
 
 class ScheduleDisplaySerializer(serializers.ModelSerializer):
@@ -145,3 +162,18 @@ class SpecialistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Specialist
         fields = ('id', 'speciality', 'user', 'is_on_vacation')
+
+
+class SpecialistRegisterSerializer(serializers.ModelSerializer):
+    speciality = serializers.CharField(required=True)
+
+    class Meta:
+        model = Specialist
+        fields = ('speciality',)
+
+    def save(self, **kwargs):
+        if self.is_valid():
+            Specialist.objects.create(
+                **self.validated_data,
+                user=kwargs['user'],
+            )
