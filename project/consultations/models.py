@@ -59,7 +59,7 @@ class Specialist(models.Model):
         ordering = ['-id']
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    speciality = models.CharField()
+    speciality = models.CharField(max_length=64)
     # schedules = models.ForeignKey(Schedule, blank=True, null=True, on_delete=models.CASCADE)
     is_on_vacation = models.BooleanField(default=False, blank=True)
 

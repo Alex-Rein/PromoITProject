@@ -1,20 +1,17 @@
 from datetime import datetime
 
 from django.contrib.auth.models import Group, User
-from django.shortcuts import render
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView, status
-from rest_framework import viewsets
-from rest_framework.generics import (ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView,
-                                     RetrieveUpdateAPIView, GenericAPIView)
+from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, GenericAPIView
 
 from .models import Specialist, Schedule, Slot, Appointment
 from .serializers import (SpecialistSerializer, ScheduleDisplaySerializer, SpecialistRegisterSerializer,
-                          ScheduleCreateSerializer, SlotDisplaySerializer, SlotCreateSerializer,
+                          ScheduleCreateSerializer, SlotCreateSerializer,
                           AppointmentCreateSerializer, AppointmentCancelSerializer,
                           AdminUserSerializer, AdminUserActionSerializer)
-from .permissions import CustomModelPermission, IsNotBlocked, IsSpecialist
+from .permissions import IsNotBlocked, IsSpecialist
 
 
 # Create your views here.
@@ -69,8 +66,8 @@ class SpecialistDetailView(APIView):
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        # data = Schedule.objects.filter(specialist=specialist).filter(date__gte=datetime.today())  # TODO вернуть в рабочку
-        data = Schedule.objects.filter(specialist=specialist)
+        data = Schedule.objects.filter(specialist=specialist).filter(date__gte=datetime.today())
+        # data = Schedule.objects.filter(specialist=specialist)  # DEBUG отображение всех расписаний
         serializer = ScheduleDisplaySerializer(data, many=True)
         return Response(serializer.data)
 
@@ -81,7 +78,6 @@ class SpecialistScheduleCreateView(CreateAPIView):
     """
     permission_classes = [IsSpecialist, IsNotBlocked]
     serializer_class = ScheduleCreateSerializer
-    http_method_names = ['post', 'patch']
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -94,7 +90,6 @@ class SpecialistScheduleCreateView(CreateAPIView):
                 'id': schedule.id
             })
         else:
-            print(serializer.errors)
             return Response({
                 'message': serializer.errors,
             })
@@ -127,6 +122,12 @@ class SlotCreateView(CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
+        schedule = Schedule.objects.get(pk=kwargs['pk'])
+        if not request.user == schedule.specialist.user:  # Проверка что добавляем слот в свое расписание
+            return Response({
+                'message': 'Ошибка: У вас нет прав добавлять слот в этом расписании.',
+            })
+
         if serializer.is_valid():
             slot = serializer.save(pk=kwargs['pk'])
             return Response({
@@ -156,20 +157,14 @@ class AppointmentCreateView(CreateAPIView):
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if instance.status == Slot.Statuses.RESERVED:
-            return Response({
-                'message': 'Запись не прошла. Слот занят'
-            })
-
         if serializer.is_valid():
-            appointment = serializer.save(pk=kwargs['pk'], user=request.user)
+            appointment = serializer.save(pk=kwargs['pk'])
             return Response({
                 'status': status.HTTP_200_OK,
                 'message': 'Запись спрошла успешно',
                 'id': appointment.id
             })
         else:
-            print(serializer.errors)
             return Response({
                 'message': serializer.errors,
             })
@@ -181,9 +176,6 @@ class AppointmentCancelView(UpdateAPIView):
     """
     queryset = Appointment.objects.all()
     serializer_class = AppointmentCancelSerializer
-
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
 
 
 class AdminUserListView(ListAPIView):
@@ -222,9 +214,7 @@ class AdminUserActionView(GenericAPIView):
                     'message': f'Пользователь {user.username} разблокирован'
                 })
         serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            pass
-        else:
+        if not serializer.is_valid():
             return Response({
                 'status': status.HTTP_400_BAD_REQUEST,
                 'message': serializer.errors
